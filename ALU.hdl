@@ -42,17 +42,55 @@ CHIP ALU {
 
     PARTS:
     //zero x----zx=1
+    //  if zx is 0: nothing, if zx is 1: x now = 0
+    Mux16(a= x, b= false, sel= zx, out= ZEROx);
 
     //negate x----
+    //  need to make not x
+    //  then apply not x if needed
+    Not16(in= ZEROx, out= NOTx);
+    Mux16(a= ZEROx, b= NOTx, sel= nx, out= NEGATEx);
 
     //zero y----
+    //  if zy is 0: nothing, if zy is 1: y now = 0
+    Mux16(a= y, b= false, sel= zy, out= ZEROy);
 
     //negate y----
+    //  need to make not y
+    //  then apply not y if needed
+    Not16(in= ZEROy, out= NOTy);
+    Mux16(a= ZEROy, b= NOTy, sel= ny, out= NEGATEy);
 
     //f
-    //either x+y or x&y----f=1
+    //  either x+y or x&y----f=1
+    //      &
+    And16(a= NEGATEx, b= NEGATEy, out= ANDxy);
+    //      +
+    Add16(a = NEGATEx, b = NEGATEy, out = ADDxy);
+    //routing
+    Mux16(a= ANDxy, b= ADDxy, sel= f, out= fOUT);
 
     //negate out----out=1
+    //  not the output
+    //  apply the not if needed
+    Not16(in= fOUT, out= NOTfOUT);
+    Mux16(a= fOUT, b= NOTfOUT, sel= no, out= out,
+    out[15]=posNEGindex, out[0..7]=left8, out[8..15]=right8); 
+    //thank you internet for telling me how to save a bit
+
 
     //flags????
+    //ng
+    //  is the first bit 0 or 1?
+    //  if its 1 its negative
+    And(a= posNEGindex, b= true, out= ng);
+
+    //zr
+    //  16 bits I need to read with or
+    //  do 8 twice and combine
+    //  is the 16 bit 0???
+    Or8Way(in= left8, out= ORleft8);
+    Or8Way(in= right8, out= ORright8);
+    Or(a= ORleft8, b= ORright8, out= ORl8r8);
+    Not(in= ORl8r8, out= zr);
 }
