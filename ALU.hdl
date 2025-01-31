@@ -26,6 +26,8 @@
 // if (f == 0)  sets out = x & y  // bitwise and
 // if (no == 1) sets out = !out   // bitwise not
 
+
+//so many muxes
 CHIP ALU {
     IN  
         x[16], y[16],  // 16-bit inputs        
